@@ -22,6 +22,7 @@ export const createAdmin = async (req, res) => {
   }
   const salt = await bcrypt.genSalt(10);
   const hashPassword = await bcrypt.hash(Password, salt);
+
   try {
     const admin = await Admin.create({
       AdminName,

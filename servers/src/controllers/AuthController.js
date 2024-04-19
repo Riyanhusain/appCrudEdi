@@ -91,9 +91,17 @@ export const refreshToken = async (req, res) => {
 };
 export const registerUser = async (req, res) => {
   const { UserEmail, Password, ConfirmPassword, Role } = req.body;
+  if (!UserEmail || !Password || !ConfirmPassword) {
+    return res.status(500).json({ message: "lengkapi data anda" });
+  }
+  const users = await Users.findOne({ where: { UserEmail } });
+  if (users) {
+    return res.status(500).json({ message: "email sudah digunakan" });
+  }
   if (Password !== ConfirmPassword) {
     return res.status(500).json({ message: "password tidak sama" });
   }
+  console.log(req.body);
   const salt = await bcrypt.genSalt(10);
   const hashPasword = await bcrypt.hash(Password, salt);
   try {

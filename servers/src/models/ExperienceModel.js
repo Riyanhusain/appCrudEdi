@@ -30,7 +30,10 @@ const Experience = db.define("experience", {
   },
   candidateId: { type: DataTypes.INTEGER },
 });
-Experience.belongsTo(Candidate, { foreignKey: "candidateId" });
+Experience.belongsTo(Candidate, {
+  foreignKey: "candidateId",
+  onDelete: "CASCADE",
+});
 Candidate.hasMany(Experience, {
   foreignKey: "candidateId",
   onDelete: "CASCADE",

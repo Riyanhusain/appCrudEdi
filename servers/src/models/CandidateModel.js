@@ -11,6 +11,14 @@ const Candidate = db.define("candidate", {
       notEmpty: true,
     },
   },
+  CandidatePosition: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    validate: {
+      notEmpty: true,
+    },
+  },
+
   CandidteName: {
     type: DataTypes.STRING,
     allowNull: false,
@@ -67,10 +75,16 @@ const Candidate = db.define("candidate", {
   },
 
   PhoneNumber: {
-    type: DataTypes.INTEGER,
+    type: DataTypes.BIGINT(25),
     allowNull: false,
   },
   Bestie: {
+    type: DataTypes.STRING,
+  },
+  Image: {
+    type: DataTypes.STRING,
+  },
+  url: {
     type: DataTypes.STRING,
   },
 });

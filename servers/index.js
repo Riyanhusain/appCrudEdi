@@ -33,6 +33,7 @@ app.use(tranningRoute);
 app.use(experianceRoute);
 app.use(authRouter);
 app.use(adminRouter);
+app.use(express.static("src/assets"));
 
 app.listen(APP_PORT, async () => {
   try {

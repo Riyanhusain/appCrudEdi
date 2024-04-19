@@ -6,22 +6,23 @@ import Users from "../models/UsersModel.js";
 
 export const getAllCandidate = async (req, res) => {
   try {
-    const candidate = await Candidate.findAll({
+    const candidates = await Candidate.findAll({
       include: [
-        { model: Education },
+        { model: Education, order: [["GraduateYear", "DESC"]], limit: 1 },
         { model: Experience },
         { model: Tranning },
       ],
     });
-    res.status(200).json(candidate);
+    res.status(200).json(candidates);
   } catch (error) {
     res.status(404).json({ message: error });
   }
 };
+
 export const biodataEntry = async (req, res) => {
   const UserEmail = req.users.email;
-
   const {
+    CandidatePosition,
     CandidteName,
     Nik,
     PlaceOfBirth,
@@ -38,10 +39,11 @@ export const biodataEntry = async (req, res) => {
     experiences,
     trannings,
   } = req.body;
-  console.log(education);
+
   try {
     const candidate = await Candidate.create({
       CandidteName,
+      CandidatePosition,
       Nik,
       PlaceOfBirth,
       DateOfBirth: new Date(DateOfBirth),
@@ -111,19 +113,40 @@ export const biodataUpdate = async (req, res) => {
     KtpAddress,
     DomicileAddress,
     PhoneNumber,
+    CandidatePosition,
     Bestie,
-    education,
-    experiences,
-    trannings,
   } = req.body;
+  let image = "";
+  let url = "";
+  if (req.file) {
+    const { filename } = req.file;
+    image = filename;
+    url = `${req.protocol}://${req.get("host")}/images/${filename}`;
+  }
 
   try {
-    const candidate = await Candidate.update(
-      {
+    console.log(
+      CandidteName,
+      Nik,
+      PlaceOfBirth,
+      DateOfBirth,
+      Gender,
+      Religion,
+      BloodType,
+      CandidateStatus,
+      KtpAddress,
+      DomicileAddress,
+      PhoneNumber,
+      CandidatePosition,
+      Bestie
+    );
+    if (!user.candidateId) {
+      const candidate = await Candidate.create({
         CandidteName,
+        CandidatePosition,
         Nik,
         PlaceOfBirth,
-        DateOfBirth: new Date(DateOfBirth),
+        DateOfBirth,
         Gender,
         Religion,
         BloodType,
@@ -132,90 +155,95 @@ export const biodataUpdate = async (req, res) => {
         DomicileAddress,
         PhoneNumber,
         Bestie,
+        Image: image,
+        url: url,
+      });
+      await Users.update(
+        { candidateId: candidate.id },
+        { where: { id: userId } }
+      );
+    } else {
+      const candidate = await Candidate.update(
+        {
+          CandidteName: CandidteName || user.CandidateName,
+          Nik: Nik || user.Nik,
+          PlaceOfBirth: PlaceOfBirth || user.PlaceOfBirth,
+          DateOfBirth: DateOfBirth || user.DateOfBirth,
+          Gender: Gender || user.Gender,
+          Religion: Religion || user.Religion,
+          BloodType: BloodType || user.BloodType,
+          CandidateStatus: CandidateStatus || user.CandidateStatus,
+          KtpAddress: KtpAddress || user.KtpAddress,
+          DomicileAddress: DomicileAddress || user.DomicileAddress,
+          PhoneNumber: PhoneNumber || user.PhoneNumber,
+          Bestie: Bestie || user.Bestie,
+          CandidatePosition: CandidatePosition || user.CandidatePosition,
+          Image: image || user.image,
+          url: url || user.url,
+        },
+        { where: { id: user.candidateId } }
+      );
+    }
+
+    res.status(200).json({ message: "berhasil diupdate" });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json(error);
+  }
+};
+export const biodataUpdateAdmin = async (req, res) => {
+  const userId = req.params.id;
+  console.log(userId);
+  const user = await Candidate.findOne({ where: { id: userId } });
+  if (!user) {
+    return res.sendStatus(403);
+  }
+  const {
+    CandidteName,
+    Nik,
+    PlaceOfBirth,
+    DateOfBirth,
+    Gender,
+    Religion,
+    BloodType,
+    CandidateStatus,
+    KtpAddress,
+    DomicileAddress,
+    PhoneNumber,
+    CandidatePosition,
+    Bestie,
+  } = req.body;
+
+  let image = "";
+  let url = "";
+  if (req.file) {
+    const { filename } = req.file;
+    image = filename;
+    url = `${req.protocol}://${req.get("host")}/images/${filename}`;
+  }
+
+  try {
+    const candidate = await Candidate.update(
+      {
+        CandidteName: CandidteName || user.CandidateName,
+        Nik: Nik || user.Nik,
+        PlaceOfBirth: PlaceOfBirth || user.PlaceOfBirth,
+        DateOfBirth: DateOfBirth || user.DateOfBirth,
+        Gender: Gender || user.Gender,
+        Religion: Religion || user.Religion,
+        BloodType: BloodType || user.BloodType,
+        CandidateStatus: CandidateStatus || user.CandidateStatus,
+        KtpAddress: KtpAddress || user.KtpAddress,
+        DomicileAddress: DomicileAddress || user.DomicileAddress,
+        PhoneNumber: PhoneNumber || user.PhoneNumber,
+        Bestie: Bestie || user.Bestie,
+        CandidatePosition: CandidatePosition || user.CandidatePosition,
+        Image: image || user.image,
+        url: url || user.url,
       },
-      { where: { id: user.candidateId } }
+      { where: { id: req.params.id } }
     );
-    if (education && education.length > 0) {
-      for (const edu of education) {
-        const existingEducation = await Education.findOne({
-          where: { candidateId: user.candidateId },
-        });
 
-        if (existingEducation) {
-          await Education.update(
-            {
-              GradeTitle: edu.GradeTitle,
-              SchoolName: edu.SchoolName,
-              Major: edu.Major,
-              GraduateYear: edu.GraduateYear,
-              GPA: edu.GPA,
-            },
-            { where: { candidateId: user.candidateId } }
-          );
-        } else {
-          await Education.create({
-            candidateId: user.candidateId,
-            GradeTitle: edu.GradeTitle,
-            SchoolName: edu.SchoolName,
-            Major: edu.Major,
-            GraduateYear: edu.GraduateYear,
-            GPA: edu.GPA,
-          });
-        }
-      }
-    }
-    if (experiences && experiences.length > 0) {
-      for (const expr of experiences) {
-        const existingExperience = await Experience.findOne({
-          where: { candidateId: user.candidateId },
-        });
-
-        if (existingExperience) {
-          await Experience.update(
-            {
-              CompanyName: expr.CompanyName,
-              LastPosition: expr.LastPosition,
-              Salary: expr.Salary,
-              Year: expr.Year,
-            },
-            { where: { candidateId: user.candidateId } }
-          );
-        } else {
-          await Experience.create({
-            candidateId: user.candidateId,
-            CompanyName: expr.CompanyName,
-            LastPosition: expr.LastPosition,
-            Salary: expr.Salary,
-            Year: expr.Year,
-          });
-        }
-      }
-    }
-    if (trannings && trannings.length > 0) {
-      for (const tran of trannings) {
-        const existingTranning = await Tranning.findOne({
-          where: { candidateId: user.candidateId },
-        });
-
-        if (existingTranning) {
-          await Tranning.update(
-            {
-              TranningName: tran.TranningName,
-              Sertification: tran.Sertification,
-              TranningYear: tran.TranningYear,
-            },
-            { where: { candidateId: user.candidateId } }
-          );
-        } else {
-          await Tranning.create({
-            candidateId: user.candidateId,
-            TranningName: tran.TranningName,
-            Sertification: tran.Sertification,
-            TranningYear: tran.TranningYear,
-          });
-        }
-      }
-    }
     res.status(200).json({ message: "berhasil diupdate" });
   } catch (error) {
     console.log(error);
@@ -225,11 +253,19 @@ export const biodataUpdate = async (req, res) => {
 
 export const getProfile = async (req, res) => {
   const userId = req.users.userId;
-  if (!userId) {
+  const user = await Users.findOne({ where: { id: userId } });
+  if (!user) {
     return res.sendStatus(403);
   }
   try {
-    const profile = await Candidate.findOne({ where: { id: userId } });
+    const profile = await Candidate.findOne({
+      where: { id: user.candidateId },
+      include: [
+        { model: Education },
+        { model: Experience },
+        { model: Tranning },
+      ],
+    });
     res.status(200).json(profile);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -237,6 +273,11 @@ export const getProfile = async (req, res) => {
 };
 export const getOneCandidate = async (req, res) => {
   const candidateId = req.params.id;
+  const userId = req.users.userId;
+  const user = await Users.findOne({ where: { id: userId } });
+  if (!user) {
+    return res.sendStatus(403);
+  }
   try {
     const candidate = await Candidate.findOne({
       where: { id: candidateId },
@@ -257,6 +298,7 @@ export const deleteCandidate = async (req, res) => {
     await Candidate.destroy({ where: { id: candidateId } });
     res.status(200).json({ message: "candidate berhasil di hapus" });
   } catch (error) {
+    console.log(error);
     res.status(500).json({ message: error.message });
   }
 };

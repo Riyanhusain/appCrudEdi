@@ -33,9 +33,11 @@ const Education = db.define("education", {
     type: DataTypes.FLOAT,
     allowNull: false,
   },
+  candidateId: { type: DataTypes.INTEGER },
 });
 Candidate.hasMany(Education, {
   foreignKey: "candidateId",
+  onDelete: "CASCADE",
 });
 Education.belongsTo(Candidate, {
   foreignKey: "candidateId",

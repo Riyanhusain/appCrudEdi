@@ -36,8 +36,8 @@ const Users = db.define("users", {
   adminId: { type: DataTypes.INTEGER },
 });
 
-Users.belongsTo(Candidate, { foreignKey: "candidateId" });
-Candidate.hasOne(Users, { foreignKey: "candidateId" });
-Users.belongsTo(Admin, { foreignKey: "adminId" });
-Admin.hasOne(Users, { foreignKey: "adminId" });
+Users.belongsTo(Candidate, { foreignKey: "candidateId", onDelete: "CASCADE" });
+Candidate.hasOne(Users, { foreignKey: "candidateId", onDelete: "CASCADE" });
+Users.belongsTo(Admin, { foreignKey: "adminId", onDelete: "CASCADE" });
+Admin.hasOne(Users, { foreignKey: "adminId", onDelete: "CASCADE" });
 export default Users;

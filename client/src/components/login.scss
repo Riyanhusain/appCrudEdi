@@ -1,0 +1,13 @@
+.card {
+  width: 400px;
+  height: 400px;
+  .card-body {
+    padding: 20px;
+    .logo {
+      width: 80px;
+    }
+    .btn {
+      width: 360px;
+    }
+  }
+}

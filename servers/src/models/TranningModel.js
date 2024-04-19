@@ -30,5 +30,5 @@ Tranning.belongsTo(Candidate, {
   foreignKey: "candidateId",
   onDelete: "CASCADE",
 });
-Candidate.hasMany(Tranning, { foreignKey: "candidateId" });
+Candidate.hasMany(Tranning, { foreignKey: "candidateId", onDelete: "CASCADE" });
 export default Tranning;
